@@ -9,7 +9,13 @@ void changeDirectories(const char* path);
 int main(void);
 
 int executeCommand(char* const* command, const char* inFile, const char* outFile, char* const* command2){
-
+    int pipeFD[2];
+    if(command2 != NULL){
+        if(pipe(pipeFD) < 0){
+            perror("Pipe Error");
+            exit(1);
+        }
+    }
 }
 
 int parseInput(char* input, char splitWords[][500], int maxWords){
