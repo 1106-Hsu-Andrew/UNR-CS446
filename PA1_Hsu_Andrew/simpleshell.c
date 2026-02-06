@@ -1,8 +1,11 @@
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+
 
 
 int executeCommand(char* const* command, const char* inFile, const char* outFile, char* const* command2);
@@ -75,10 +78,10 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
                 }
             }
             else{
-                int status1, status2;
+                int status, status2;
                 close(pipeFD2[0]);
                 close(pipeFD2[1]);
-                waitpid(pid, &status1, 0);
+                waitpid(pid, &status, 0);
                 waitpid(pid2, &status2, 0);
 
                 if(WIFEXITED(status) && WIFEXITED(status2) != 0){
@@ -122,7 +125,7 @@ int findElement(char splitWords[][500], int maxTokens, char elementToFind){
 
 
 void changeDirectories(const char* path){
-    if(path == nullptr){
+    if(path == NULL){
         perror("Path Not Formatted Correctly!");
     }
     if(chdir(path) == -1){
@@ -133,7 +136,7 @@ void changeDirectories(const char* path){
 
 int main(void){
     int maxWords = 100;
-    char netID = "ahsu2";
+    char* netID = "ahsu2";
     char userCommand[500];
     char splitWords[maxWords][500];
     char currentWorkingDirectory[500];
@@ -157,63 +160,62 @@ int main(void){
         else{
             char** fullCommand[numTokens + 1];
             char** fullCommand2[numTokens + 1];
-            if(!strchr(userCommand, ">") && !strchr(userCommand, "<") && !strchr(userCommand, "|")){
+            if(!strchr(userCommand, '>') && !strchr(userCommand, '<') && !strchr(userCommand, '|')){
                 fullCommand[0] = splitWords[0];
                 for(int i = 1; i < numTokens; i++){
                     if(i == numTokens){
-                        fullCommand[i] = nullptr;
+                        fullCommand[i] = NULL;
                     }
-                    fullCommand[i] = splitWords[i]
+                    fullCommand[i] = splitWords[i];
                 }
-                executeCommand(fullCommand, nullptr, nullptr, nullptr);
+                executeCommand(fullCommand, NULL, NULL, NULL);
             }
             else{
-                if(strchr(userCommand, ">")){
-                    int redirectIdx = findElement(splitWords, ">");
+                if(strchr(userCommand, '>')){
+                    int redirectIdx = findElement(splitWords, numTokens, ">");
                     const char* inFile = splitWords[redirectIdx + 1];
                     for(int i = 1; i < numTokens; i++){
                         if(i == redirectIdx){
                             continue;
                         }
-                        fullCommand[i] = splitWords[i]
+                        fullCommand[i] = splitWords[i];
                     }
                     for(int i = redirectIdx; i < numTokens - 1; i++){
                         fullCommand[i] = fullCommand[i + 1];
                     }
-                    executeCommand(fullCommand, inFile, nullptr, nullptr);
+                    executeCommand(fullCommand, inFile, NULL, NULL);
                 }
-                else if(strchr(userCommand, "<")){
-                    int redirectIdx = findElement(splitWords, ">");
-                    const char* inFile = splitWords[redirectIdx + 1];
+                else if(strchr(userCommand, '<')){
+                    int redirectIdx = findElement(splitWords, numTokens, ">");
+                    const char* outFile = splitWords[redirectIdx + 1];
                     for(int i = 1; i < numTokens; i++){
                         if(i == redirectIdx){
                             continue;
                         }
-                        fullCommand[i] = splitWords[i]
+                        fullCommand[i] = splitWords[i];
                     }
                     for(int i = redirectIdx; i < numTokens - 1; i++){
                         fullCommand[i] = fullCommand[i + 1];
                     }
-                    executeCommand(fullCommand, nullptr, outFile, nullptr);
+                    executeCommand(fullCommand, NULL, outFile, NULL);
                 }
-                else if(strchr(userCommand, "|")){
-                    int redirectIdx = findElement(splitWords, "|");
-                    const char* inFile = splitWords[redirectIdx + 1];
+                else if(strchr(userCommand, '|')){
+                    int redirectIdx = findElement(splitWords, numTokens, "|");
                     for(int i = 1; i < redirectIdx; i++){
                         if(i == redirectIdx){
                             continue;
                         }
-                        fullCommand1[i] = splitWords[i]
+                        fullCommand[i] = splitWords[i];
                     }
                     for(int i = redirectIdx + 1; i < numTokens - 1; i++){
                         if(i == redirectIdx){
                             continue;
                         }
-                        fullCommand2[i] = splitWords[i]
+                        fullCommand2[i] = splitWords[i];
                     }
-                    executeCommand(fullCommand, nullptr, nullptr, fullCommand2);
+                    executeCommand(fullCommand, NULL, NULL, fullCommand2);
                 }
             }
         }
-    }while(true);
+    }while(1);
 }
