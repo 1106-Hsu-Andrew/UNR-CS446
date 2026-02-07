@@ -56,9 +56,8 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
 
     }
     else{
-        int pipeFD2[2];
         if(command2 != NULL){
-            if(pipe(pipeFD2) < 0){
+            if(pipe(pipeFD) < 0){
                 perror("Pipe Error");
                 exit(1);
             }
@@ -68,9 +67,9 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
                 perror("Fork Failed");
             }
             else if(pid2 == 0){
-                dup2(pipeFD2[0], STDIN_FILENO);
-                close(pipeFD2[0]);
-                close(pipeFD2[1]);
+                dup2(pipeFD[0], STDIN_FILENO);
+                close(pipeFD[0]);
+                close(pipeFD[1]);
 
                 int commandReturnVal = execvp(command2[0], command2);
                 if(commandReturnVal == -1){
@@ -80,8 +79,8 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
             }
             else{
                 int status, status2;
-                close(pipeFD2[0]);
-                close(pipeFD2[1]);
+                close(pipeFD[0]);
+                close(pipeFD[1]);
                 waitpid(pid, &status, 0);
                 waitpid(pid2, &status2, 0);
 
@@ -105,12 +104,12 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
 
 int parseInput(char* input, char splitWords[][500], int maxWords){
     int validTokenCount = 0;
-    char* token = strtok(input, " ");
+    char* token = strtok(input, " \n\t");
 
     while(token != NULL){
         strcpy(splitWords[validTokenCount], token);
         validTokenCount++;
-        token = strtok(NULL, " ");
+        token = strtok(NULL, " \n\t");
     }
     return validTokenCount;
 }
@@ -164,7 +163,7 @@ int main(void){
             char** fullCommand2 = NULL;
             int redirectIdx = -1;
 
-            if((redirectIdx = findElement(splitWords, numTokens, ">")) != -1){
+            if((redirectIdx = findElement(splitWords, numTokens, "<")) != -1){
                 const char* inFile = splitWords[redirectIdx + 1];
                 fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
                 for(int i = 0; i < redirectIdx; i++){
@@ -173,7 +172,7 @@ int main(void){
                 fullCommand[redirectIdx] = NULL;
                 executeCommand(fullCommand, inFile, NULL, NULL);
             }
-            else if((redirectIdx = findElement(splitWords, numTokens, "<")) != -1){
+            else if((redirectIdx = findElement(splitWords, numTokens, ">")) != -1){
                 const char* outFile = splitWords[redirectIdx + 1];
                 fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
                 for(int i = 0; i < redirectIdx; i++){
@@ -202,7 +201,7 @@ int main(void){
                 for(int i = 0; i < numTokens; i++){
                     fullCommand[i] = splitWords[i];
                 }
-                fullCommand[numTokens] == NULL;
+                fullCommand[numTokens] = NULL;
                 executeCommand(fullCommand, NULL, NULL, NULL);
             }
             if(fullCommand!= NULL) free(fullCommand);
