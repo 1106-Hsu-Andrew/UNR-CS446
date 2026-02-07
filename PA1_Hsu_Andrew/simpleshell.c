@@ -127,10 +127,10 @@ int findElement(char splitWords[][500], int maxTokens, const char* elementToFind
 
 void changeDirectories(const char* path){
     if(path == NULL){
-        perror("Path Not Formatted Correctly!");
+        printf("Path Not Formatted Correctly!\n");
     }
     if(chdir(path) == -1){
-        perror("chdir Failed");
+        print("chdir Failed: %s\n", strerror(errno));
     }
 }
 
@@ -155,7 +155,7 @@ int main(void){
             return(0);
         }
         else if(strcmp("cd", splitWords[0]) == 0){
-            changeDirectories(userCommand);
+            changeDirectories(splitWords[1]);
         }
         else{
             char** fullCommand = NULL;
