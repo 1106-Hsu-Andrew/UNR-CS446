@@ -131,7 +131,7 @@ void changeDirectories(const char* path){
         printf("Path Not Formatted Correctly!\n");
     }
     if(chdir(path) == -1){
-        print("chdir Failed: %s\n", strerror(errno));
+        printf("chdir Failed: %s\n", strerror(errno));
     }
 }
 
