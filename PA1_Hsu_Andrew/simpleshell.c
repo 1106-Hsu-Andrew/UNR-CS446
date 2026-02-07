@@ -57,11 +57,6 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
     }
     else{
         if(command2 != NULL){
-            if(pipe(pipeFD) < 0){
-                perror("Pipe Error");
-                exit(1);
-            }
-
             pid_t pid2 = fork();
             if(pid2 < 0){
                 perror("Fork Failed");
