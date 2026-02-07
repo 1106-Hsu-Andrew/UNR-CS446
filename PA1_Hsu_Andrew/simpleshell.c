@@ -10,7 +10,7 @@
 
 int executeCommand(char* const* command, const char* inFile, const char* outFile, char* const* command2);
 int parseInput(char* input, char splitWords[][500], int maxWords);
-int findElement(char splitWords[][500], int maxTokens, char elementToFind);
+int findElement(char splitWords[][500], int maxTokens, const char* elementToFind);
 void changeDirectories(const char* path);
 int main(void);
 
@@ -115,12 +115,13 @@ int parseInput(char* input, char splitWords[][500], int maxWords){
 }
 
 
-int findElement(char splitWords[][500], int maxTokens, char elementToFind){
+int findElement(char splitWords[][500], int maxTokens, const char* elementToFind){
     for(int i = 0; i < maxTokens; i++){
-        if(splitWords[i] == elementToFind){
+        if(strcmp(splitWords[i], elementToFind) == 0){
             return i;
         }
     }
+    return -1;
 }
 
 
@@ -143,78 +144,70 @@ int main(void){
     getcwd(currentWorkingDirectory, 500);
 
     do{
-        printf("<%s>:<%s>", netID, currentWorkingDirectory);
+        printf("<%s>:<%s> ", netID, currentWorkingDirectory);
         fgets(userCommand, 500, stdin);
         size_t len = strlen(userCommand);
-        if(len >0 && userCommand[len - 1] == "\n"){
-            userCommand[len - 1] == "\0";
+        if(len >0 && userCommand[len - 1] == '\n'){
+            userCommand[len - 1] == '\0';
         }
         int numTokens = parseInput(userCommand, splitWords, maxWords);
-
-        if(strcmp("exit", splitWords[0])){
+        printf("%s", splitWords[0]);
+        if(strcmp("exit", splitWords[0]) == 0){
             return(0);
         }
-        else if(strcmp("cd", splitWords[0])){
+        else if(strcmp("cd", splitWords[0]) == 0){
             changeDirectories(userCommand);
         }
         else{
-            char** fullCommand[numTokens + 1];
-            char** fullCommand2[numTokens + 1];
+            char** fullCommand = NULL;
+            char** fullCommand2 = NULL;
             if(!strchr(userCommand, '>') && !strchr(userCommand, '<') && !strchr(userCommand, '|')){
-                fullCommand[0] = splitWords[0];
-                for(int i = 1; i < numTokens; i++){
-                    if(i == numTokens){
-                        fullCommand[i] = NULL;
-                    }
+                fullCommand = (char**)malloc((numTokens + 1) * sizeof(char*));
+                for(int i = 0; i < numTokens; i++){
                     fullCommand[i] = splitWords[i];
                 }
+                fullCommand[numTokens] = NULL;
                 executeCommand(fullCommand, NULL, NULL, NULL);
             }
             else{
-                if(strchr(userCommand, '>')){
+                if(strchr(userCommand, '>') == 0){
                     int redirectIdx = findElement(splitWords, numTokens, ">");
                     const char* inFile = splitWords[redirectIdx + 1];
-                    for(int i = 1; i < numTokens; i++){
-                        if(i == redirectIdx){
-                            continue;
-                        }
+                    fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
+                    for(int i = 0; i < redirectIdx; i++){
                         fullCommand[i] = splitWords[i];
                     }
-                    for(int i = redirectIdx; i < numTokens - 1; i++){
-                        fullCommand[i] = fullCommand[i + 1];
-                    }
+                    fullCommand[redirectIdx] = NULL;
                     executeCommand(fullCommand, inFile, NULL, NULL);
                 }
-                else if(strchr(userCommand, '<')){
-                    int redirectIdx = findElement(splitWords, numTokens, ">");
+                else if(strchr(userCommand, '<') == 0){
+                    int redirectIdx = findElement(splitWords, numTokens, "<");
                     const char* outFile = splitWords[redirectIdx + 1];
-                    for(int i = 1; i < numTokens; i++){
-                        if(i == redirectIdx){
-                            continue;
-                        }
+                    fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
+                    for(int i = 0; i < redirectIdx; i++){
                         fullCommand[i] = splitWords[i];
                     }
-                    for(int i = redirectIdx; i < numTokens - 1; i++){
-                        fullCommand[i] = fullCommand[i + 1];
-                    }
+                    fullCommand[redirectIdx] = NULL;
                     executeCommand(fullCommand, NULL, outFile, NULL);
                 }
-                else if(strchr(userCommand, '|')){
+                else if(strchr(userCommand, '|') == 0){
                     int redirectIdx = findElement(splitWords, numTokens, "|");
-                    for(int i = 1; i < redirectIdx; i++){
-                        if(i == redirectIdx){
-                            continue;
-                        }
+                    fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
+                    for(int i = 0; i < redirectIdx; i++){
                         fullCommand[i] = splitWords[i];
                     }
-                    for(int i = redirectIdx + 1; i < numTokens - 1; i++){
-                        if(i == redirectIdx){
-                            continue;
-                        }
-                        fullCommand2[i] = splitWords[i];
+                    fullCommand[redirectIdx] = NULL;
+
+                    int k = 0;
+                    fullCommand2 = (char**)malloc(numTokens - (redirectIdx + 1) * sizeof(char*));
+                    for(int i = redirectIdx + 1; i < numTokens; i++){
+                        fullCommand2[k++] = splitWords[i];
                     }
+                    fullCommand2[redirectIdx] = NULL;
                     executeCommand(fullCommand, NULL, NULL, fullCommand2);
                 }
+                if(fullCommand!= NULL) free(fullCommand);
+                if(fullCommand2!= NULL) free(fullCommand2);
             }
         }
     }while(1);
