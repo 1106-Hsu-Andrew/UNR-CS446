@@ -148,10 +148,9 @@ int main(void){
         fgets(userCommand, 500, stdin);
         size_t len = strlen(userCommand);
         if(len >0 && userCommand[len - 1] == '\n'){
-            userCommand[len - 1] == '\0';
+            userCommand[len - 1] = '\0';
         }
         int numTokens = parseInput(userCommand, splitWords, maxWords);
-        printf("%s", splitWords[0]);
         if(strcmp("exit", splitWords[0]) == 0){
             return(0);
         }
@@ -170,7 +169,7 @@ int main(void){
                 executeCommand(fullCommand, NULL, NULL, NULL);
             }
             else{
-                if(strchr(userCommand, '>') == 0){
+                if(!strchr(userCommand, '>')){
                     int redirectIdx = findElement(splitWords, numTokens, ">");
                     const char* inFile = splitWords[redirectIdx + 1];
                     fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
@@ -180,7 +179,7 @@ int main(void){
                     fullCommand[redirectIdx] = NULL;
                     executeCommand(fullCommand, inFile, NULL, NULL);
                 }
-                else if(strchr(userCommand, '<') == 0){
+                else if(!strchr(userCommand, '<')){
                     int redirectIdx = findElement(splitWords, numTokens, "<");
                     const char* outFile = splitWords[redirectIdx + 1];
                     fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
@@ -190,7 +189,7 @@ int main(void){
                     fullCommand[redirectIdx] = NULL;
                     executeCommand(fullCommand, NULL, outFile, NULL);
                 }
-                else if(strchr(userCommand, '|') == 0){
+                else if(!strchr(userCommand, '|')){
                     int redirectIdx = findElement(splitWords, numTokens, "|");
                     fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
                     for(int i = 0; i < redirectIdx; i++){
@@ -199,7 +198,7 @@ int main(void){
                     fullCommand[redirectIdx] = NULL;
 
                     int k = 0;
-                    fullCommand2 = (char**)malloc(numTokens - (redirectIdx + 1) * sizeof(char*));
+                    fullCommand2 = (char**)malloc((numTokens - (redirectIdx + 1) + 1) * sizeof(char*));
                     for(int i = redirectIdx + 1; i < numTokens; i++){
                         fullCommand2[k++] = splitWords[i];
                     }
