@@ -85,8 +85,8 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
                 waitpid(pid, &status, 0);
                 waitpid(pid2, &status2, 0);
 
-                if(WIFEXITED(status) && WIFEXITED(status2) != 0){
-                    printf("Child finished with error status: %d", status);
+                if(!WIFEXITED(status) && !WIFEXITED(status2)){
+                    printf("Child finished with error status: %d\n", status);
                     return -1;
                 }
             }
@@ -94,8 +94,8 @@ int executeCommand(char* const* command, const char* inFile, const char* outFile
         else{
             int status;
             wait(&status);
-            if(WIFEXITED(status) != 0){
-                printf("Child finished with error status: %d", status);
+            if(!WIFEXITED(status)){
+                printf("Child finished with error status: %d\n", status);
                 return -1;
             }
         }
