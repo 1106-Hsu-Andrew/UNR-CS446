@@ -164,7 +164,7 @@ int main(void){
             char** fullCommand2 = NULL;
             int redirectIdx = -1;
 
-            if((redirectIdx = findElement(splitWords, numTokens, ">")) == -1){
+            if((redirectIdx = findElement(splitWords, numTokens, ">")) != -1){
                 const char* inFile = splitWords[redirectIdx + 1];
                 fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
                 for(int i = 0; i < redirectIdx; i++){
@@ -173,7 +173,7 @@ int main(void){
                 fullCommand[redirectIdx] = NULL;
                 executeCommand(fullCommand, inFile, NULL, NULL);
             }
-            else if((redirectIdx = findElement(splitWords, numTokens, "<")) == -1){
+            else if((redirectIdx = findElement(splitWords, numTokens, "<")) != -1){
                 const char* outFile = splitWords[redirectIdx + 1];
                 fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
                 for(int i = 0; i < redirectIdx; i++){
@@ -182,7 +182,7 @@ int main(void){
                 fullCommand[redirectIdx] = NULL;
                 executeCommand(fullCommand, NULL, outFile, NULL);
             }
-            else if((redirectIdx = findElement(splitWords, numTokens, "|")) == -1){
+            else if((redirectIdx = findElement(splitWords, numTokens, "|")) != -1){
                     fullCommand = (char**)malloc((redirectIdx + 1) * sizeof(char*));
                     for(int i = 0; i < redirectIdx; i++){
                         fullCommand[i] = splitWords[i];
