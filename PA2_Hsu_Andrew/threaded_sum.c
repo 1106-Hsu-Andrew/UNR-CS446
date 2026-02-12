@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <sys/time.h>
@@ -38,15 +39,18 @@ void* arraySum(void* inputPtr){
 
 int main(int argc, char* argv[]){
     int fileContents[1000000];
-
+    long long int totalSum = 0;
+    struct timeval currTime;
     if(argc != 3){
         printf("There aren't enough parameters.");
         return -1;
     }
 
     int fileLen = readFile(argv[1], fileContents);
-    if(argv[2] > fileLen){
+    if(atoi(argv[2]) > fileLen){
         printf("Too many threads requested.");
         return -1;
     }
+    gettimeofday(&currTime, NULL);
+    printf("Cuurent time is %ld seconds + %ld microseconds\n", currTime.tv_sec, currTime.tv_usec);
 }
