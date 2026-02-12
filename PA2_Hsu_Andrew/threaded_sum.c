@@ -4,8 +4,8 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-int readFile(char[], int[]);
 void* arraySum(void*);
+int readFile(char[], int[]);
 
 typedef struct _thread_data_t{
     const int* data;
@@ -14,6 +14,10 @@ typedef struct _thread_data_t{
     pthread_mutex_t* lock;
     long long int* totalSum;
 } thread_data_t;
+
+void* arraySum(void* inputPtr){
+
+}
 
 int readFile(char fileName[], int fileContents[]){
     int successfulReads = 0;
@@ -33,24 +37,31 @@ int readFile(char fileName[], int fileContents[]){
     
 }
 
-void* arraySum(void* inputPtr){
-
-}
-
 int main(int argc, char* argv[]){
+    pthread_mutex_t* mutex;
+    struct timeval currTime;
     int fileContents[1000000];
     long long int totalSum = 0;
-    struct timeval currTime;
+    int totalThreads = atoi(argv[2])
+
     if(argc != 3){
         printf("There aren't enough parameters.");
         return -1;
     }
-
     int fileLen = readFile(argv[1], fileContents);
-    if(atoi(argv[2]) > fileLen){
+
+    if(totalThreads > fileLen){
         printf("Too many threads requested.");
         return -1;
     }
     gettimeofday(&currTime, NULL);
-    printf("Cuurent time is %ld seconds + %ld microseconds\n", currTime.tv_sec, currTime.tv_usec);
+    pthread_mutex_init(mutex, NULL);
+
+    thread_data_t threadData[fileLen];
+    for(int i = 0; i < fileLen - 1; i++){
+        threadData[i].data = fileContents;
+        threadData[i].startInd = (fileLen / totalThreads) * i;
+        threadData[i].endInd = (fileLen / totalThreads) * (i + 1);
+        threadData[i].lock = threadData[i - 1];
+    }
 }
