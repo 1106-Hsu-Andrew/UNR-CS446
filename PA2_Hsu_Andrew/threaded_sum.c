@@ -22,15 +22,19 @@ int readFile(char fileName[], int fileContents[]){
     
 }
 
-void* arraySum(void* inputData){
+void* arraySum(void* inputPtr){
 
 }
 
-int main(){
-    char fileName[500] = "oneThousand.txt";
+int main(int argc, char* argv[]){
+    if(argc != 3){
+        printf("There aren't enough parameters.");
+        return -1;
+    }
+
     int fileContents[1000000];
 
-    int fileLen = readFile(fileName, fileContents);
+    int fileLen = readFile(argv[1], fileContents);
     for(int i = 0; i < fileLen; i++){
         printf("%d\n", fileContents[i]);
     }
