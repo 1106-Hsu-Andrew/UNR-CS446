@@ -1,0 +1,12 @@
+a) For both oneThousand.txt and oneMillion.txt, between 1-4 threads, the execution time does seem to decrease. However, once we use 8-16 threads, 
+the execution time begins to increase.
+
+b) I believe these results to be believable. After a certain point, the overhead to create and manage all these threads may outweight the benefits that they may provide.
+
+c) I considered at what point the multiple threads might overwrite each other if a context-switch happened. In arraySum,
+the one spot where this could happen would be when we are adding the local variable threadSum to totalSum. Before this, the threads are only working with a local variable that 
+other threads cannot touch, so it does not make sense to lock this.
+
+Extra) If this were the case, we would have to lock the for loop where the threads are summing the array. Since, arraySum() is directly interacting with the totalSum it is 
+entirely possible that a thread could context-switch in the middle of adding/writing to totalSum and we would miss a value. However, using threads in this scenario
+would be pointless because there wouldn't be any paralellism involved, everything would be done sequentially.

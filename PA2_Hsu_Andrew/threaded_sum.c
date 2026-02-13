@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
         threadData[i].data = fileContents;
         threadData[i].startInd = (fileLen / totalThreads) * i;
 
-        if(i == totalThreads - i){
+        if(i == totalThreads - 1){
             threadData[i].endInd = fileLen;
         }
         else{
