@@ -16,7 +16,16 @@ typedef struct _thread_data_t{
 } thread_data_t;
 
 void* arraySum(void* inputPtr){
+    thread_data_t* threadPtr = (thread_data_t*)inputPtr;
 
+    pthread_mutex_lock(threadPtr->lock);
+    long long int threadSum = 0;
+    for(int i = threadPtr->startInd; i < threadPtr->endInd; i++){
+        threadSum += threadPtr->data[i];
+    }
+
+    *(threadPtr->totalSum) += threadSum;
+    pthread_mutex_unlock(threadPtr->lock);
 }
 
 int readFile(char fileName[], int fileContents[]){
@@ -38,11 +47,11 @@ int readFile(char fileName[], int fileContents[]){
 }
 
 int main(int argc, char* argv[]){
-    pthread_mutex_t* mutex;
-    struct timeval currTime;
+    pthread_mutex_t mutex;
+    struct timeval startTime;
     int fileContents[1000000];
     long long int totalSum = 0;
-    int totalThreads = atoi(argv[2])
+    int totalThreads = atoi(argv[2]);
 
     if(argc != 3){
         printf("There aren't enough parameters.");
@@ -54,14 +63,29 @@ int main(int argc, char* argv[]){
         printf("Too many threads requested.");
         return -1;
     }
-    gettimeofday(&currTime, NULL);
-    pthread_mutex_init(mutex, NULL);
+    gettimeofday(&startTime, NULL);
+    pthread_mutex_init(&mutex, NULL);
 
-    thread_data_t threadData[fileLen];
-    for(int i = 0; i < fileLen - 1; i++){
+    thread_data_t threadData[totalThreads];
+    for(int i = 0; i < totalThreads; i++){
         threadData[i].data = fileContents;
         threadData[i].startInd = (fileLen / totalThreads) * i;
         threadData[i].endInd = (fileLen / totalThreads) * (i + 1);
-        threadData[i].lock = threadData[i - 1];
+        threadData[i].lock = &mutex;
+        threadData[i].totalSum = &totalSum;
     }
+
+    pthread_t threadArray[totalThreads];
+    struct timeval endTime;
+    double elapsedTime;
+    for(int i = 0; i < totalThreads; i++){
+        void* voidThreadData = &threadData[i];
+        pthread_create(&threadArray[i], NULL, arraySum, voidThreadData);
+        pthread_join(threadArray[i], NULL);
+
+        gettimeofday(&endTime, NULL);
+        elapsedTime = (endTime.tv_sec - startTime.tv_sec) * 1000.0;
+        elapsedTime += (endTime.tv_usec - startTime.tv_usec) / 1000.0;
+    }
+    printf("Total Sum: %lld\nTotal Execution Time: %f ms\n", totalSum, elapsedTime);
 }
