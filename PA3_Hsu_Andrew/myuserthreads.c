@@ -84,11 +84,11 @@ void time_slice_expired_handler(int signal) {
 
     // implement simple scheduling between tasks //
     ucontext_t* ctxPrev = ctxCurr;
-    if((ctxCurr == &ctxTask1 || ctxCurr == &ctxMain) && !task_2_finished){
-        ctxCurr = &ctxTask2;
-    }
-    else if((ctxCurr == &ctxTask2 || ctxCurr == &ctxMain) && !task_1_finished){
+    if((ctxCurr == &ctxTask2 || ctxCurr == &ctxMain) && !task_1_finished){
         ctxCurr = &ctxTask1;
+    }
+    else if((ctxCurr == &ctxTask1 || ctxCurr == &ctxMain) && !task_2_finished){
+        ctxCurr = &ctxTask2;
     }
 
     if(ctxPrev != ctxCurr){
@@ -104,7 +104,16 @@ int main(int argc, char *argv[]){
 
     // implement task1 and task2 ucontext setup //
     void* stack1 = malloc(STACK_SIZE);
+    if(stack1 == NULL){
+        printf("Stack 1 memory allocation failed.");
+        return -1;
+    }
+
     void* stack2 = malloc(STACK_SIZE);
+    if(stack2 == NULL){
+        printf("Stack 2 memory allocation failed.");
+        return -1;
+    }
     
     getcontext(&ctxMain);
 
@@ -141,6 +150,8 @@ int main(int argc, char *argv[]){
 		
         pause();  // pause the main Thread, to wait for delivery of the the next timer-based signal 
     }
+    free(stack1);
+    free(stack2);
 	
     printf("Main: Finished. Final counter: %d\n", counter);
  
