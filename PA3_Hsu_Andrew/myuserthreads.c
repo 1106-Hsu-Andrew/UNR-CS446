@@ -18,11 +18,16 @@
 #include "modify_value.h"
 
 #define REPS 100000
+#define STACK_SIZE 64 * 1024
 
 int counter = 0;
+atomic_flag flag = ATOMIC_FLAG_INIT;
+struct ucontext_t ctxMain, ctxTask1, ctxTask2;
+struct ucontext_t* ctxCurr;
 
 int task_1_finished = 0;
 int task_2_finished = 0;
+
 
 void task_1_func() {
     printf("Task 1 started.\n");
@@ -31,7 +36,7 @@ void task_1_func() {
 		
 
         // implement spin-guard lock()-ing //
-
+        while(atomic_flag_test_and_set(&flag)){}
 
         while (rand() % 8 != 0) {}  // short, random delay to prevent loop unrolling
 
@@ -41,7 +46,7 @@ void task_1_func() {
 
 
         // implement spin-guard unlock()-ing //
-
+        atomic_flag_clear(&flag);
 
     }
     
@@ -56,7 +61,7 @@ void task_2_func() {
 		
 
         // implement spin-guard lock()-ing //
-
+        while(atomic_flag_test_and_set(&flag)){}
 
         while (rand() % 8 != 0) {}  // short, random delay to prevent loop unrolling
 
@@ -66,8 +71,7 @@ void task_2_func() {
 
 
         // implement spin-guard unlock()-ing //
-
-
+        atomic_flag_clear(&flag);
     }
     
     printf("Task 2 finished.\n");
@@ -76,20 +80,57 @@ void task_2_func() {
 
 
 void time_slice_expired_handler(int signal) {
-    
     printf("\t\tTIME SLICE EXPIRED\n");
 
     // implement simple scheduling between tasks //
+    ucontext_t* ctxPrev = ctxCurr;
+    if((ctxCurr == &ctxTask1 || ctxCurr == &ctxMain) && !task_2_finished){
+        ctxCurr = &ctxTask2;
+    }
+    else if((ctxCurr == &ctxTask2 || ctxCurr == &ctxMain) && !task_1_finished){
+        ctxCurr = &ctxTask1;
+    }
+
+    if(ctxPrev != ctxCurr){
+        swapcontext(ctxPrev, ctxCurr);
+    }
 }
 
 
 int main(int argc, char *argv[]){
+    struct itimerval timer;
 
     srand(time(NULL));  // initialize random number generator
 
     // implement task1 and task2 ucontext setup //
+    void* stack1 = malloc(STACK_SIZE);
+    void* stack2 = malloc(STACK_SIZE);
+    
+    getcontext(&ctxMain);
+
+    getcontext(&ctxTask1);
+    ctxTask1.uc_stack.ss_sp = stack1;
+    ctxTask1.uc_stack.ss_size = STACK_SIZE;
+    ctxTask1.uc_link = &ctxMain;
+    makecontext(&ctxTask1, task_1_func, 0);
+
+    getcontext(&ctxTask2);
+    ctxTask2.uc_stack.ss_sp = stack2;
+    ctxTask2.uc_stack.ss_size = STACK_SIZE;
+    ctxTask2.uc_link = &ctxMain;
+    makecontext(&ctxTask2, task_2_func, 0);
 
     // implement interval timer setup //
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 1000;
+
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 1000;
+    
+    setitimer(ITIMER_REAL, &timer, NULL);
+    signal(SIGALRM, time_slice_expired_handler);
+
+    ctxCurr = &ctxMain;
 
     printf("Main started.\n");
 	

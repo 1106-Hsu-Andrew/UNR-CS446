@@ -1,5 +1,6 @@
 TARGET = myuserthreads
 LIBS =  #List of external libraries required to link against
+CC = gcc
 
 MODIFYVALUE_HEADERS = modify_value.h  
 MODIFYVALUE_SRCS = modify_value.c  
