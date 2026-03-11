@@ -65,6 +65,7 @@ void print_progress(pid_t localTid, size_t value) {
 	free(buffer);
 }
 
+/**
 int main(int argc, char *argv[]){
     
     TERM_CLEAR();
@@ -80,5 +81,5 @@ int main(int argc, char *argv[]){
     
     return 0;
 }
-
+**/
 
