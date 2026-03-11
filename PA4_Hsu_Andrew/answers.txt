@@ -1,0 +1,1 @@
+1. On the screen there are 12 processes currently working. For each process there is the PID number, followed by the latency in nanoseconds, and then a progress bar. The latency and progress are constantly changing.

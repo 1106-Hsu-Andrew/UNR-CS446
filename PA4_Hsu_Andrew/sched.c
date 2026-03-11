@@ -59,7 +59,6 @@ int main(int argc, char* argv[]){
 		return -1;
 	}
 	
-	printf("Number of Processors: %ld\n", sysconf(_SC_NPROCESSORS_ONLN));
 	thread_data_t threadArray[atoi(argv[1])];
 	pthread_t pThreadArray[atoi(argv[1])];
 	intArray = (int*)malloc(2000000 * sizeof(int));	
