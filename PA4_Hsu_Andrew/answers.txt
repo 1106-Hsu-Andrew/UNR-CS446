@@ -3,6 +3,7 @@
 2. Observations: In the OTHER scheduling policy, more nonvoluntary context switches were happening. In the RR and FIFO scheduling policies, the speed and number of nonvoluntary context switches that were occurring greatly decreased. The RR scheduling policy appeared to experience fewer nonvoluntary context switches than FIFO. Finally, when the priority level changed (1 -> 2), RR and FIFO nonvoluntary context switches increased, but not to the speed/level as the OTHER scheduling policy.
 
 Commands:
+   watch -n.5 grep ctxt /proc/15061/status
    sudo chrt -p -r 1 15061
    sudo chrt -p -f 1 15061
    sudo chrt -p -o 0 15061
@@ -12,15 +13,19 @@ Commands:
 3. Observations: The process assigned to the dedicated core is experiencing lower latency, and the latency is varying less. Before assigning it to the dedicated CPU, the process was experiencing latency ranging from 1,000ns to 10,000ns. The latency has now decreased to less than 1,000ns.
 
 Commands:
-  ** isolcpus and taskset were used instead of cpuset because cpuset would not work**
-  sudo taskset -p 0x00000001 2707
+   sudo cset set -c 0-22 system
+   sudo cset set -c 23 dedicated
+   sudo cset proc -m -f root -t system
+   sudo cset proc -k -f root -t system
+   sudo cset proc -m -p 2707 -t dedicated
   
 
 4. Observations: In the OTHER scheduling policy, more nonvoluntary context switches were happening. In the RR and FIFO scheduling policies, the speed and number of nonvoluntary context switches that were occurring greatly decreased to about 1 nonvoluntary context switch. The RR scheduling policy appeared to experience fewer nonvoluntary context switches than FIFO. Finally, when the priority level changed (1 -> 2), RR and FIFO rates of nonvoluntary context switches stayed about the same.
 
 Commands:
-  sudo chrt -p -r 1 2707
-  sudo chrt -p -r 2 2707
-  sudo chrt -p -f 1 2707
-  sudo chrt -p -f 2 2707
-  sudo chrt -p -o 0 2707
+   watch -n.5 grep ctxt /proc/15061/status
+   sudo chrt -p -r 1 2707
+   sudo chrt -p -r 2 2707
+   sudo chrt -p -f 1 2707
+   sudo chrt -p -f 2 2707
+   sudo chrt -p -o 0 2707
