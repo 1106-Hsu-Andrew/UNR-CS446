@@ -23,7 +23,7 @@ Commands:
 4. Observations: In the OTHER scheduling policy, more nonvoluntary context switches were happening. In the RR and FIFO scheduling policies, the speed and number of nonvoluntary context switches that were occurring greatly decreased to about 1 nonvoluntary context switch. The RR scheduling policy appeared to experience fewer nonvoluntary context switches than FIFO. Finally, when the priority level changed (1 -> 2), RR and FIFO rates of nonvoluntary context switches stayed about the same.
 
 Commands:
-   watch -n.5 grep ctxt /proc/15061/status
+   watch -n.5 grep ctxt /proc/2707/status
    sudo chrt -p -r 1 2707
    sudo chrt -p -r 2 2707
    sudo chrt -p -f 1 2707
