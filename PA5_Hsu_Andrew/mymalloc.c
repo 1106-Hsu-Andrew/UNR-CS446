@@ -36,10 +36,10 @@ void myfree(void* ptr);
 mblock_t* findLastMemlistBlock(){
     mblock_t* currBlock = mlist.head;
     if(currBlock == NULL){
-        printf("List is empty.\n");
+        printf("Couldn't find last block. List is empty.\n");
         return NULL;
     }
-    while(currBlock != NULL){
+    while(currBlock->next != NULL){
         currBlock = currBlock->next;
     }
     return currBlock;
@@ -48,10 +48,13 @@ mblock_t* findLastMemlistBlock(){
 mblock_t* findFreeBlockOfSize(size_t size){
     mblock_t* currBlock = mlist.head;
     if(currBlock == NULL){
-        printf("List is empty.\n");
+        printf("Couldn't find free block. List is empty.\n");
         return NULL;
     }
-    while(currBlock != NULL && currBlock->size < size){
+    while(currBlock != NULL){
+        if(currBlock->size >= size && currBlock->status == 0){
+            return currBlock;
+        }
         currBlock = currBlock->next;
     }
     return currBlock;
@@ -62,7 +65,7 @@ void splitBlockAtSize(mblock_t* block, size_t newSize){
         mblock_t* remainingBlock = (mblock_t*)((char*)block + MBLOCK_HEADER_SZ + newSize);
         remainingBlock->prev = block;
         remainingBlock->next = block->next;
-        remainingBlock->size = block->size - MBLOCK_HEADER_SZ + newSize;
+        remainingBlock->size = block->size - MBLOCK_HEADER_SZ - newSize;
         remainingBlock->status = 0;
 
         if(block->next != NULL){
@@ -75,7 +78,7 @@ void splitBlockAtSize(mblock_t* block, size_t newSize){
 }
 
 mblock_t* growHeapBySize(size_t size){
-    size_t breakIncrement = (size > 1024) ? size : 1024;
+    size_t breakIncrement = (size + MBLOCK_HEADER_SZ > 1024) ? size : 1024;
     void* prevBreak = sbrk(breakIncrement);
     if(prevBreak == (void*) - 1){
         return NULL;
@@ -138,8 +141,9 @@ void myfree(void* ptr){
     if(ptr == NULL){
         return;
     }
-    mblock_t* beginningOfMBLock = (mblock_t*)((char*)ptr - MBLOCK_HEADER_SZ);
-    coallesceBlockPrev(beginningOfMBLock);
+    mblock_t* beginningOfMBlock = (mblock_t*)((char*)ptr - MBLOCK_HEADER_SZ);
+    beginningOfMBlock->status = 0;
+    coallesceBlockPrev(beginningOfMBlock);
 }
 
 int main(){
@@ -157,9 +161,5 @@ int main(){
     myfree(p6); p6 = NULL;
     myfree(p1); p1 = NULL;
 
-    mblock_t* blockPtr = mlist.head;
-    while(blockPtr != NULL){
-        printMemList(blockPtr);
-        blockPtr = blockPtr->next;
-    }
+    printMemList(mlist.head);
 }
