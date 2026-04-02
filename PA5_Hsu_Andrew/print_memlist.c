@@ -24,10 +24,10 @@ typedef struct _mlist_t {
 
 void printMemList(const mblock_t* headptr);
 
-int main(int argc, char *argv[]){
+// int main(int argc, char *argv[]){
     
-  return 0;
-}
+//   return 0;
+// }
 
 void printMemList(const mblock_t* head) {
   const mblock_t* p = head;
