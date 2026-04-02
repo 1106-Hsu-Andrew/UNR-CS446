@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 
 #define MBLOCK_HEADER_SZ offsetof(mblock_t, payload)
+mlist_t mlist;
+mlist.head = NULL;
 
 typedef struct _mblock_t {
   struct _mblock_t * prev;
@@ -23,15 +25,78 @@ typedef struct _mlist_t {
     mblock_t * head;
 } mlist_t;
 
-
 mblock_t* findLastMemlistBlock();
 mblock_t* findFreeBlockOfSize(size_t size);
-void splitBlockAtSize(mblock_t* block, size_t newSize);
-void coallesceBlockPrev(mblock_t* freedBlock);
+void splitAndCoallesceBlockAtSize(mblock_t* block, size_t newSize);
 mblock_t* growHeapBySize(size_t size);
 void* mymalloc(size_t size);
 void myfree(void* ptr);
 
+mblock_t* findLastMemlistBlock(){
+    mblock_t* currBlock = mlist.head;
+    if(currBlock == NULL){
+        printf("List is empty.\n");
+        return;
+    }
+    while(currBlock != NULL){
+        currBlock = currBlock->next;
+    }
+    return currBlock;
+}
+
+mblock_t* findFreeBlockOfSize(size_t size){
+    mblock_t* currBlock = mlist.head;
+    if(currBlock == NULL){
+        printf("List is empty.\n");
+        return;
+    }
+    while(currBlock != NULL && currBlock.size < size){
+        currBlock = currBlock->next;
+    }
+    return currBlock;
+}
+
+void splitAndCoallesceBlockAtSize(mblock_t* block, size_t newSize){
+    mblock_t* remainingBlock = &block + MBLOCK_HEADER_SZ + newSize;
+
+    freedBlock->prev = &block;
+    freedBlock->next = block->next;
+    freedBlock->status = 0;
+    remainingBlock->size = MBLOCK_HEADER_SZ + newSize;
+
+    block->next->prev = &remainingBlock;
+    block->next = &remainingBlock;
+    block->status = 1;
+}
+
+mblock_t* growHeapBySize(size_t size){
+    breakIncrement = (size > 1024) ? size : 1024;
+    prevBreak = sbrk(breakIncrement);
+    if(prevBreak == (void*) - 1){
+        return NULL;
+    }
+
+    mblock_t* newBlock = &prevBreak + MBLOCK_HEADER_SZ + size;
+    newBlock->prev = &prevBreak;
+    newBlock->next = NULL;
+    newBlock->status = 0;
+    newBlock->size = size;
+
+    lastBlock = findLastMemBlock();
+    lastBlock->next = &newBlock;
+}
+
+void* mymalloc(size_t size){
+    mblock_t* freeBlock = findFreeBlockOfSize(size);
+    if(freeBlock != NULL){
+        splitAndCoallesceBlockAtSize(freeBlock, size);
+    }
+    else{
+        growHeapBySize(size);
+    }
+
+
+}
 
 int main(){
     void * p1 = mymalloc(10);
