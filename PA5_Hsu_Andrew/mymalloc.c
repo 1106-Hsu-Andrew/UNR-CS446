@@ -8,19 +8,18 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "print_memlist.c"
 
-// typedef struct _mblock_t {
-//   struct _mblock_t * prev;
-//   struct _mblock_t * next;
-//   size_t size;
-//   int status;
-//   void * payload;
-// } mblock_t;
+typedef struct _mblock_t {
+  struct _mblock_t * prev;
+  struct _mblock_t * next;
+  size_t size;
+  int status;
+  void * payload;
+} mblock_t;
 
-// typedef struct _mlist_t {
-//     mblock_t * head;
-// } mlist_t;
+typedef struct _mlist_t {
+    mblock_t * head;
+} mlist_t;
 
 #define MBLOCK_HEADER_SZ offsetof(mblock_t, payload)
 mlist_t mlist;
@@ -36,7 +35,6 @@ void myfree(void* ptr);
 mblock_t* findLastMemlistBlock(){
     mblock_t* currBlock = mlist.head;
     if(currBlock == NULL){
-        printf("Couldn't find last block. List is empty.\n");
         return NULL;
     }
     while(currBlock->next != NULL){
@@ -48,7 +46,6 @@ mblock_t* findLastMemlistBlock(){
 mblock_t* findFreeBlockOfSize(size_t size){
     mblock_t* currBlock = mlist.head;
     if(currBlock == NULL){
-        printf("Couldn't find free block. List is empty.\n");
         return NULL;
     }
     while(currBlock != NULL){
@@ -104,20 +101,20 @@ mblock_t* growHeapBySize(size_t size){
 void coallesceBlockPrev(mblock_t* freedBlock){
     mblock_t* prevBlock = freedBlock->prev;
     mblock_t* nextBlock = freedBlock->next;
+    if(nextBlock != NULL && nextBlock->status == 0){
+        freedBlock->next = nextBlock->next;
+        if(nextBlock->next != NULL){
+            nextBlock->next->prev = freedBlock;
+        }
+        freedBlock->size += MBLOCK_HEADER_SZ + nextBlock->size;
+    }
+
     if(prevBlock != NULL && prevBlock->status == 0){
         prevBlock->next = freedBlock->next;
         if(freedBlock->next != NULL){
             freedBlock->next->prev = prevBlock;
         }
         prevBlock->size += MBLOCK_HEADER_SZ + freedBlock->size;
-    }
-
-    if(nextBlock != NULL && nextBlock->status == 0){
-        nextBlock->prev = freedBlock->prev;
-        if(freedBlock->prev != NULL){
-            freedBlock->prev->next = nextBlock;
-        }
-        nextBlock->size += MBLOCK_HEADER_SZ + freedBlock->size;
     }
 }
 
@@ -138,7 +135,8 @@ void* mymalloc(size_t size){
 }
 
 void myfree(void* ptr){
-    if(ptr == NULL){
+    void* currBreak = sbrk(0);
+    if(ptr == NULL || ptr < (void*)mlist.head || ptr >= currBreak){
         return;
     }
     mblock_t* beginningOfMBlock = (mblock_t*)((char*)ptr - MBLOCK_HEADER_SZ);
@@ -160,6 +158,4 @@ int main(){
     myfree(p5); p5 = NULL;
     myfree(p6); p6 = NULL;
     myfree(p1); p1 = NULL;
-
-    printMemList(mlist.head);
 }
